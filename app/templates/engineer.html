@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block title %}Tablero del ingeniero · BioMed{% endblock %}
+{% block content %}
+
+{% macro report_card(report) %}
+<article class="work-card priority-{{ report.prioridad or 'pending' }}" data-report-id="{{ report.id }}">
+  <!-- Card Header -->
+  <div class="work-card__top">
+    <span class="report-number">Reporte #{{ report.id }}</span>
+    <span class="priority-badge priority-{{ report.prioridad or 'pending' }}">
+      <span class="priority-dot"></span>
+      {{ report.prioridad or 'Sin clasificar' }}
+    </span>
+  </div>
+
+  <!-- Equipment Info -->
+  <div class="work-card__equipment">
+    <h3 class="work-card__title" title="{{ report.equipo.nombre }}">{{ report.equipo.nombre }}</h3>
+    <div class="work-card__meta">
+      <span class="meta-tag serial-badge">{{ report.equipo.serial }}</span>
+      <span class="meta-sep">·</span>
+      <span class="meta-tag type-badge">{{ report.equipo.tipo }}</span>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <p class="work-card__description">{{ report.descripcion|truncate(110) }}</p>
+
+  <!-- Badges / Alerts -->
+  <div class="work-card__chips">
+    <span class="state-badge state-{{ report.estado }}">{{ status_labels[report.estado] }}</span>
+    {% if report.validacion_respaldo_pendiente %}
+      <span class="alert alert-warning py-1 px-2 small mb-0 d-inline-flex align-items-center gap-1 validation-alert">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Validar grupo de respaldo antes de clasificar.
+      </span>
+    {% endif %}
+  </div>
+
+  {% if report.estado == 'en_mantenimiento' %}
+    {% set returns = report.historial|selectattr('tipo_evento','equalto','retorno_a_mantenimiento')|list %}
+    {% if returns %}
+      <div class="return-reason mt-2">
+        <strong>Retornó a mantenimiento:</strong> {{ returns[-1].observacion }}
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <!-- Details Matrix (Compact Row) -->
+  <dl class="work-card__details">
+    <div class="detail-item">
+      <dt>Impacto</dt>
+      <dd class="impact-val impact-{{ report.impacto_operativo }}">{{ report.impacto_operativo|replace('_', ' ') }}</dd>
+    </div>
+    <div class="detail-item">
+      <dt>Puntaje</dt>
+      <dd class="score-val">{{ report.puntaje_prioridad if report.puntaje_prioridad is not none else 'Pendiente' }}</dd>
+    </div>
+    <div class="detail-item">
+      <dt>Registro</dt>
+      <dd class="date-val">{{ report.created_at.strftime('%d/%m %H:%M') }}</dd>
+    </div>
+  </dl>
+
+  <!-- Action Bar -->
+  <div class="work-card__actions">
+    <a class="btn btn-primary btn-sm flex-grow-1" href="{{ url_for('main.report_detail', report_id=report.id) }}">
+      Abrir reporte
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('main.equipment_history', equipment_id=report.equipo_id) }}" title="Historial del equipo">
+      Historial del equipo
+    </a>
+  </div>
+</article>
+{% endmacro %}
+
+<!-- Control Bar & Executive Summary -->
+<div class="dashboard-control-panel">
+  <header class="dashboard-header">
+    <div class="dashboard-title-group">
+      <span class="eyebrow">Ingeniería clínica</span>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <h1>Tablero de atención</h1>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 fs-xs">
+          {{ counts.reportado + counts.en_revision + counts.en_mantenimiento + counts.reparado }} casos activos
+        </span>
+      </div>
+      <p class="text-muted mb-0">Cada reporte aparece en una sola etapa del flujo de trabajo.</p>
+    </div>
+
+    <div class="dashboard-actions">
+      <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="{{ url_for('main.register_equipment') }}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Registrar equipo + ArUco
+      </a>
+      <form method="post" action="{{ url_for('main.logout') }}" class="m-0">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Cerrar sesión
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <!-- KPI & Search Toolbar -->
+  <div class="dashboard-toolbar">
+    <nav class="priority-summary" aria-label="Resumen de prioridades">
+      <div class="kpi-chip kpi-critica">
+        <span class="kpi-indicator"></span>
+        <span class="priority-badge priority-critica">Crítica {{ summary.critica }}</span>
+      </div>
+      <div class="kpi-chip kpi-alta">
+        <span class="kpi-indicator"></span>
+        <span class="priority-badge priority-alta">Alta {{ summary.alta }}</span>
+      </div>
+      <div class="kpi-chip kpi-media">
+        <span class="kpi-indicator"></span>
+        <span class="priority-badge priority-media">Media {{ summary.media }}</span>
+      </div>
+      <div class="kpi-chip kpi-baja">
+        <span class="kpi-indicator"></span>
+        <span class="priority-badge priority-baja">Baja {{ summary.baja }}</span>
+      </div>
+    </nav>
+
+    <form class="history-search" method="get" action="{{ url_for('main.find_equipment_history') }}">
+      <label class="form-label visually-hidden" for="history-serial">Consultar reportes cerrados e historial por serial</label>
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0 text-muted">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <input id="history-serial" name="serial" class="form-control border-start-0 ps-0" placeholder="Consultar historial por serial (Ej. VENT-42)" required>
+        <button class="btn btn-outline-primary">Consultar historial</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 4-Column Modern Kanban Board -->
+<div class="kanban-board-wrapper">
+  <div class="kanban-board">
+    <!-- Step 1: Reportado -->
+    <section class="work-lane lane-reportado" id="reportados" aria-labelledby="reportados-title">
+      <div class="lane-heading">
+        <div class="lane-title-wrap">
+          <span class="eyebrow">Paso 1</span>
+          <h2 id="reportados-title">Pendientes de revisión</h2>
+          <p>Reciba los casos y comience la revisión técnica.</p>
+        </div>
+        <span class="lane-count" title="{{ counts.reportado }} casos">{{ counts.reportado }}</span>
+      </div>
+      <div class="work-grid">
+        {% for report in lanes.reportado %}
+          {{ report_card(report) }}
+        {% else %}
+          <div class="empty-lane">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-lane-icon"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <p class="mb-0">No hay reportes esperando revisión.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Step 2: En Revisión -->
+    <section class="work-lane lane-revision" id="revision" aria-labelledby="revision-title">
+      <div class="lane-heading">
+        <div class="lane-title-wrap">
+          <span class="eyebrow">Paso 2</span>
+          <h2 id="revision-title">En revisión</h2>
+          <p>Complete el diagnóstico y la estimación de indisponibilidad.</p>
+        </div>
+        <span class="lane-count" title="{{ counts.en_revision }} casos">{{ counts.en_revision }}</span>
+      </div>
+      <div class="work-grid">
+        {% for report in lanes.en_revision %}
+          {{ report_card(report) }}
+        {% else %}
+          <div class="empty-lane">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-lane-icon"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <p class="mb-0">No hay equipos en revisión.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Step 3: En Mantenimiento -->
+    <section class="work-lane lane-maintenance" id="mantenimiento" aria-labelledby="mantenimiento-title">
+      <div class="lane-heading">
+        <div class="lane-title-wrap">
+          <span class="eyebrow">Paso 3</span>
+          <h2 id="mantenimiento-title">En mantenimiento</h2>
+          <p>Registre ampliaciones del plazo y el informe final al terminar.</p>
+        </div>
+        <span class="lane-count" title="{{ counts.en_mantenimiento }} casos">{{ counts.en_mantenimiento }}</span>
+      </div>
+      <div class="work-grid">
+        {% for report in lanes.en_mantenimiento %}
+          {{ report_card(report) }}
+        {% else %}
+          <div class="empty-lane">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-lane-icon"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <p class="mb-0">No hay equipos en mantenimiento.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Step 4: Reparados por verificar -->
+    <section class="work-lane lane-repaired" id="reparados" aria-labelledby="reparados-title">
+      <div class="lane-heading">
+        <div class="lane-title-wrap">
+          <span class="eyebrow">Paso 4</span>
+          <h2 id="reparados-title">Reparados por verificar</h2>
+          <p>Registre la decisión de liberación o devuelva a mantenimiento.</p>
+        </div>
+        <span class="lane-count" title="{{ counts.reparado }} casos">{{ counts.reparado }}</span>
+      </div>
+      <div class="work-grid">
+        {% for report in lanes.reparado %}
+          {{ report_card(report) }}
+        {% else %}
+          <div class="empty-lane">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-lane-icon"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <p class="mb-0">No hay equipos pendientes de verificación final.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+

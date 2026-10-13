@@ -1,0 +1,51 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 717B
+#1 reading from stdin 717B 0.1s done
+#1 DONE 0.1s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile:
+#2 transferring dockerfile: 336B 0.1s done
+#2 DONE 9.9s
+
+#3 [internal] load metadata for docker.io/library/python:3.12-slim
+#3 DONE 0.7s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B 0.0s done
+#4 DONE 0.1s
+
+#5 [internal] load build context
+#5 transferring context: 3.81kB 0.1s done
+#5 DONE 0.2s
+
+#6 [1/5] FROM docker.io/library/python:3.12-slim@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
+#6 resolve docker.io/library/python:3.12-slim@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1 0.1s done
+#6 DONE 0.1s
+
+#7 [2/5] WORKDIR /app
+#7 CACHED
+
+#8 [3/5] COPY requirements.txt .
+#8 CACHED
+
+#9 [4/5] RUN pip install --no-cache-dir -r requirements.txt
+#9 CACHED
+
+#10 [5/5] COPY . .
+#10 DONE 3.6s
+
+#11 exporting to image
+#11 exporting layers
+#11 exporting layers 0.3s done
+#11 exporting manifest sha256:c287278806cafe8becfdf615c2a5400f8cefee3e091ad2b58bb3233f97b4d418 0.0s done
+#11 exporting config sha256:fd3afbf836abf28fdb075e2e3d78215b0f1574988d8cc07d7ef603366c8d9ae4 0.0s done
+#11 exporting attestation manifest sha256:622e174bffb4757feeba07d4dcb98499f03bde32dda221ad86d0f8a81e4164bc
+#11 exporting attestation manifest sha256:622e174bffb4757feeba07d4dcb98499f03bde32dda221ad86d0f8a81e4164bc 0.0s done
+#11 exporting manifest list sha256:a9ab4923cc2cb23da0b458132760e0fd81791cab8905f0488f92227637b9c391 0.0s done
+#11 naming to docker.io/library/softwaredemantenimiento-app:latest done
+#11 unpacking to docker.io/library/softwaredemantenimiento-app:latest 0.1s done
+#11 DONE 0.7s
+
+#12 resolving provenance for metadata file
+#12 DONE 0.0s

@@ -1,0 +1,1295 @@
+/* ==========================================================================
+   BIOMED CLINICAL OPS —  Diseño de UI con TailwindCSS y Vanilla CSS
+   --------------------------------------------------------------------------
+   Styles.css — (Plantilla de Diseño de hojas de estilo CSS para Proyectos, v2.5 Jorge Hernandez Copyright 2024 reservados)
+   
+   1. Design Tokens & Variables
+   2. Reset & Typography Foundations
+   3. Global Layout & App Shell Navbar
+   4. Executive Control Panel & KPIs
+   5. Multicolumn Kanban Board System
+   6. Ultra-Compact Aesthetic Work Cards
+   7. Clinical Stepper & Equipment Sheet
+   8. Stage Action Panels & Subforms
+   9. Timeline & Audit Ledger
+   10. Camera HUD Viewfinder (Station)
+   11. Registration & ArUco Preview
+   12. Login Portal Card
+   13. Form Controls & Button States
+   14. Animations & Microinteractions
+   15. Mobile & Responsive Layouts
+   ========================================================================== */
+
+/* ==========================================================================
+   1. DESIGN TOKENS & VARIABLES
+   ========================================================================== */
+:root {
+  /* Brand Clinical Palette */
+  --color-brand:           #0284C7;
+  --color-brand-hover:     #0369A1;
+  --color-brand-active:    #075985;
+  --color-brand-subtle:    #F0F9FF;
+  --color-brand-border:    #BAE6FD;
+
+  /* Priority Colors (WCAG AA/AAA Compliant) */
+  --p-critica-bg:          #FFF1F2;
+  --p-critica-text:        #BE123C;
+  --p-critica-border:      #FECDD3;
+  --p-critica-dot:         #E11D48;
+
+  --p-alta-bg:             #FFF7ED;
+  --p-alta-text:           #C2410C;
+  --p-alta-border:         #FFEDD5;
+  --p-alta-dot:            #EA580C;
+
+  --p-media-bg:            #F0F9FF;
+  --p-media-text:          #0369A1;
+  --p-media-border:        #E0F2FE;
+  --p-media-dot:           #0284C7;
+
+  --p-baja-bg:             #F0FDF4;
+  --p-baja-text:           #15803D;
+  --p-baja-border:         #DCFCE7;
+  --p-baja-dot:            #16A34A;
+
+  --p-pending-bg:          #F8FAFC;
+  --p-pending-text:        #475569;
+  --p-pending-border:      #E2E8F0;
+  --p-pending-dot:         #94A3B8;
+
+  /* State Colors */
+  --st-reportado-bg:       #F1F5F9;
+  --st-reportado-text:     #334155;
+  --st-reportado-border:   #CBD5E1;
+
+  --st-revision-bg:        #E0F2FE;
+  --st-revision-text:      #0369A1;
+  --st-revision-border:    #7DD3FC;
+
+  --st-mantenimiento-bg:   #FEF3C7;
+  --st-mantenimiento-text: #92400E;
+  --st-mantenimiento-border:#FCD34D;
+
+  --st-reparado-bg:        #DCFCE7;
+  --st-reparado-text:      #166534;
+  --st-reparado-border:    #86EFAC;
+
+  /* Neutrals & Surfaces */
+  --bg-app:                #F8FAFC;
+  --bg-surface:            #FFFFFF;
+  --bg-lane:               #F1F5F9;
+  --bg-subtle:             #F8FAFC;
+  --border-light:          #E2E8F0;
+  --border-medium:         #CBD5E1;
+  --text-main:             #0F172A;
+  --text-body:             #334155;
+  --text-muted:            #64748B;
+  --text-subtle:           #94A3B8;
+
+  /* Shadows */
+  --shadow-xs:             0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm:             0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md:             0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg:             0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+  --shadow-hover:          0 12px 24px -4px rgba(2, 132, 199, 0.12), 0 4px 8px -2px rgba(15, 23, 42, 0.05);
+
+  /* Typography Fonts */
+  --font-sans:             'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:             'JetBrains Mono', SFMono-Regular, monospace;
+
+  /* Radii */
+  --radius-xs:             4px;
+  --radius-sm:             6px;
+  --radius-md:             10px;
+  --radius-lg:             14px;
+  --radius-xl:             20px;
+  --radius-full:           9999px;
+
+  /* Legacy variables backwards-compatibility */
+  --ink:                   var(--text-main);
+  --canvas:                var(--bg-app);
+  --card:                  var(--bg-surface);
+  --line:                  var(--border-light);
+  --muted:                 var(--text-muted);
+  --blue:                  var(--color-brand);
+  --amber:                 #D97706;
+  --green:                 #16A34A;
+  --red:                   #DC2626;
+}
+
+/* ==========================================================================
+   2. RESET & TYPOGRAPHY FOUNDATIONS
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body.app-body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-body);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  color: var(--text-main);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: var(--color-brand);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+a:hover {
+  color: var(--color-brand-hover);
+}
+
+.fs-xs { font-size: 0.75rem !important; }
+.fs-sm { font-size: 0.8125rem !important; }
+
+.font-monospace {
+  font-family: var(--font-mono) !important;
+}
+
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-brand);
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+/* Back Link */
+.page-top-nav .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  transition: all 150ms ease;
+}
+.page-top-nav .back-link:hover {
+  color: var(--color-brand);
+  background: var(--color-brand-subtle);
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   3. GLOBAL LAYOUT & APP SHELL NAVBAR
+   ========================================================================== */
+.app-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.app-navbar__inner {
+  max-width: 1720px;
+  margin: 0 auto;
+  padding: 0.65rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none !important;
+}
+
+.app-brand__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #0284C7, #0369A1);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+  transition: transform 200ms ease;
+}
+.app-brand:hover .app-brand__icon {
+  transform: scale(1.05);
+}
+
+.app-brand__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.app-brand__title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.03em;
+}
+
+.app-brand__subtitle {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.app-navbar__links {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.app-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-body);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  transition: all 150ms ease;
+  text-decoration: none !important;
+}
+.app-nav-link:hover {
+  color: var(--color-brand);
+  background: var(--color-brand-subtle);
+}
+
+.app-navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-system-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-full);
+}
+
+.status-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10B981;
+  display: inline-block;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  animation: pulse-dot 2.5s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.app-main-container {
+  max-width: 1720px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+}
+
+.app-alerts-container {
+  margin-bottom: 1.25rem;
+}
+
+/* ==========================================================================
+   4. EXECUTIVE CONTROL PANEL & KPIS
+   ========================================================================= */
+.dashboard-control-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 1rem;
+}
+
+.dashboard-title-group h1 {
+  font-size: 1.625rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-main);
+  letter-spacing: -0.03em;
+}
+
+.dashboard-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+/* KPI Chips */
+.priority-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.kpi-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  transition: all 150ms ease;
+}
+.kpi-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-xs);
+}
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-full);
+  text-transform: capitalize;
+}
+
+.priority-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.priority-critica {
+  background: var(--p-critica-bg);
+  color: var(--p-critica-text);
+  border: 1px solid var(--p-critica-border);
+}
+.priority-critica .priority-dot { background: var(--p-critica-dot); }
+
+.priority-alta {
+  background: var(--p-alta-bg);
+  color: var(--p-alta-text);
+  border: 1px solid var(--p-alta-border);
+}
+.priority-alta .priority-dot { background: var(--p-alta-dot); }
+
+.priority-media {
+  background: var(--p-media-bg);
+  color: var(--p-media-text);
+  border: 1px solid var(--p-media-border);
+}
+.priority-media .priority-dot { background: var(--p-media-dot); }
+
+.priority-baja {
+  background: var(--p-baja-bg);
+  color: var(--p-baja-text);
+  border: 1px solid var(--p-baja-border);
+}
+.priority-baja .priority-dot { background: var(--p-baja-dot); }
+
+.priority-pending {
+  background: var(--p-pending-bg);
+  color: var(--p-pending-text);
+  border: 1px solid var(--p-pending-border);
+}
+.priority-pending .priority-dot { background: var(--p-pending-dot); }
+
+/* State Badges */
+.state-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.28rem 0.55rem;
+  border-radius: var(--radius-sm);
+  text-transform: capitalize;
+}
+
+.state-reportado {
+  background: var(--st-reportado-bg);
+  color: var(--st-reportado-text);
+  border: 1px solid var(--st-reportado-border);
+}
+.state-en_revision {
+  background: var(--st-revision-bg);
+  color: var(--st-revision-text);
+  border: 1px solid var(--st-revision-border);
+}
+.state-en_mantenimiento {
+  background: var(--st-mantenimiento-bg);
+  color: var(--st-mantenimiento-text);
+  border: 1px solid var(--st-mantenimiento-border);
+}
+.state-reparado {
+  background: var(--st-reparado-bg);
+  color: var(--st-reparado-text);
+  border: 1px solid var(--st-reparado-border);
+}
+
+/* History Search in Toolbar */
+.history-search {
+  max-width: 360px;
+  width: 100%;
+}
+.history-search .input-group {
+  box-shadow: var(--shadow-xs);
+  border-radius: var(--radius-sm);
+}
+.history-search .form-control {
+  font-size: 0.8125rem;
+}
+.history-search .btn {
+  font-size: 0.8125rem;
+  padding: 0.45rem 0.85rem;
+}
+
+/* ==========================================================================
+   5. MULTICOLUMN KANBAN BOARD SYSTEM
+   ========================================================================== */
+.kanban-board-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 1.5rem;
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(290px, 1fr));
+  gap: 1.15rem;
+  align-items: start;
+}
+
+/* Work Lanes (Columns) */
+.work-lane {
+  background: var(--bg-lane);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: border-color 200ms ease;
+}
+
+/* Colored Top Accent Bar */
+.work-lane::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+}
+
+.lane-reportado::before  { background: #64748B; }
+.lane-revision::before   { background: #0284C7; }
+.lane-maintenance::before{ background: #EA580C; }
+.lane-repaired::before   { background: #16A34A; }
+
+.lane-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.lane-title-wrap h2 {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.lane-title-wrap p {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin: 0.15rem 0 0;
+  line-height: 1.3;
+}
+
+.lane-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  min-width: 1.65rem;
+  height: 1.65rem;
+  padding: 0 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-xs);
+  flex-shrink: 0;
+}
+
+/* Lane Cards Container */
+.work-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-height: calc(100vh - 275px);
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
+}
+
+.work-grid::-webkit-scrollbar {
+  width: 5px;
+}
+.work-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+.work-grid::-webkit-scrollbar-thumb {
+  background-color: var(--border-medium);
+  border-radius: 10px;
+}
+
+.empty-lane {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1.5px dashed var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 1.75rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.empty-lane-icon {
+  color: var(--text-subtle);
+  stroke-width: 1.5;
+}
+
+/* ==========================================================================
+   6. ULTRA-COMPACT AESTHETIC WORK CARDS ("MELAS")
+   ========================================================================== */
+.work-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  box-shadow: var(--shadow-xs);
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 180ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Left priority color stripe */
+.work-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3.5px;
+  transition: width 150ms ease;
+}
+
+.work-card.priority-critica::before { background: var(--p-critica-dot); }
+.work-card.priority-alta::before    { background: var(--p-alta-dot); }
+.work-card.priority-media::before   { background: var(--p-media-dot); }
+.work-card.priority-baja::before    { background: var(--p-baja-dot); }
+.work-card.priority-pending::before { background: var(--p-pending-dot); }
+
+/* Card Hover Microinteraction */
+.work-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+  border-color: #BAE6FD;
+}
+.work-card:hover::before {
+  width: 5px;
+}
+
+/* Card Header */
+.work-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.report-number {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-xs);
+}
+
+/* Equipment Titles & Metadata */
+.work-card__equipment {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.work-card__title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.work-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.meta-tag.serial-badge {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.meta-sep {
+  color: var(--text-subtle);
+}
+
+/* Description Clamp */
+.work-card__description {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--text-body);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Inline Chips */
+.work-card__chips {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.validation-alert {
+  font-size: 0.6875rem !important;
+  border-radius: var(--radius-xs);
+  line-height: 1.2;
+}
+
+.return-reason {
+  background: #FFF7ED;
+  border-left: 2px solid #EA580C;
+  border-radius: var(--radius-xs);
+  color: #9A3412;
+  font-size: 0.6875rem;
+  padding: 0.35rem 0.5rem;
+  line-height: 1.25;
+}
+
+/* Metadata Details Matrix (Single Compact Row) */
+.work-card__details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+  margin: 0.15rem 0 0;
+  padding: 0.4rem 0 0;
+  border-top: 1px dashed var(--border-light);
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-item dt {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin: 0;
+  line-height: 1;
+}
+
+.detail-item dd {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0.15rem 0 0;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.impact-val.impact-detiene_servicio { color: #DC2626; }
+.impact-val.impact-degradado        { color: #D97706; }
+.impact-val.impact-sin_impacto      { color: #16A34A; }
+
+.detail-item dd.score-val {
+  font-family: var(--font-mono);
+}
+
+/* Card Action Bar */
+.work-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.work-card__actions .btn-sm {
+  font-size: 0.6875rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--radius-xs);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* ==========================================================================
+   7. CLINICAL STEPPER & EQUIPMENT SHEET
+   ========================================================================== */
+.workflow-stepper {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.stepper-track {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.stepper-track::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: var(--border-light);
+  z-index: 1;
+}
+
+.stepper-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  z-index: 2;
+  position: relative;
+}
+
+.step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  transition: all 200ms ease;
+}
+
+.step-pending .step-circle {
+  background: var(--bg-subtle);
+  border: 2px solid var(--border-medium);
+  color: var(--text-muted);
+}
+
+.step-active .step-circle {
+  background: var(--color-brand);
+  border: 2px solid #FFFFFF;
+  color: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.25);
+}
+
+.step-completed .step-circle {
+  background: #10B981;
+  border: 2px solid #FFFFFF;
+  color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.step-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-body);
+}
+
+.step-active .step-label {
+  color: var(--color-brand);
+}
+
+/* Equipment Sheet Card */
+.equipment-sheet-card {
+  border-radius: var(--radius-lg);
+}
+
+.fault-description-box {
+  background: #FEF2F2;
+  border-color: #FECDD3 !important;
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed var(--border-light);
+}
+.meta-row:last-child {
+  border-bottom: none;
+}
+
+/* ==========================================================================
+   8. STAGE ACTION PANELS & SUBFORMS
+   ========================================================================== */
+.stage-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 5px;
+}
+
+.stage-panel-primary::before { background: var(--color-brand); }
+.stage-panel-info::before    { background: #0284C7; }
+.stage-panel-warning::before { background: #EA580C; }
+.stage-panel-success::before { background: #16A34A; }
+
+.subform {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  transition: all 180ms ease;
+}
+.subform:hover {
+  border-color: var(--color-brand-border);
+  box-shadow: var(--shadow-xs);
+}
+
+/* ==========================================================================
+   9. TIMELINE & AUDIT LEDGER
+   ========================================================================== */
+.timeline {
+  border-left: 2px solid var(--border-light);
+  margin-left: 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.timeline-item {
+  margin: 0 0 1.25rem;
+  position: relative;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -1.7rem;
+  top: 0.3rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 0 0 2px var(--color-brand-border);
+  transition: transform 150ms ease;
+}
+.timeline-item:hover::before {
+  transform: scale(1.3);
+}
+
+.timeline-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.event-note {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-body);
+  font-size: 0.8125rem;
+  padding: 0.6rem 0.75rem;
+  margin: 0.4rem 0 0;
+  white-space: pre-wrap;
+}
+
+/* ==========================================================================
+   10. CAMERA HUD VIEWFINDER (STATION)
+   ========================================================================== */
+.camera-station-card {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.camera-viewport-wrap {
+  background: #090D16;
+  min-height: 280px;
+  border: 1px solid #1E293B;
+}
+
+video#camera {
+  min-height: 280px;
+  background: #090D16;
+  object-fit: cover;
+}
+
+.camera-hud-overlay {
+  position: absolute;
+  inset: 15px;
+  pointer-events: none;
+}
+
+.hud-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: #38BDF8;
+  border-style: solid;
+}
+.hud-top-left     { top: 0; left: 0; border-width: 3px 0 0 3px; }
+.hud-top-right    { top: 0; right: 0; border-width: 3px 3px 0 0; }
+.hud-bottom-left  { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
+.hud-bottom-right { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
+
+.hud-center-cross {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+}
+.hud-center-cross::before,
+.hud-center-cross::after {
+  content: '';
+  position: absolute;
+  background: rgba(56, 189, 248, 0.4);
+}
+.hud-center-cross::before { top: 8px; left: 0; right: 0; height: 2px; }
+.hud-center-cross::after  { left: 8px; top: 0; bottom: 0; width: 2px; }
+
+/* Identified Box */
+.identified-equipment-box {
+  min-height: 4.5rem;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+/* ==========================================================================
+   11. REGISTRATION & ARUCO PREVIEW
+   ========================================================================== */
+.aruco-card-wrap {
+  border-radius: var(--radius-md);
+}
+
+.aruco-print {
+  width: 200px;
+  height: 200px;
+  image-rendering: pixelated;
+  padding: 0.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: #FFFFFF;
+}
+
+/* ==========================================================================
+   12. LOGIN PORTAL CARD
+   ========================================================================== */
+.login-page-wrapper {
+  min-height: calc(100vh - 160px);
+}
+
+.login-card {
+  border-radius: var(--radius-xl);
+}
+
+.login-brand-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #0284C7, #0369A1);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+/* ==========================================================================
+   13. FORM CONTROLS & BUTTON STATES
+   ========================================================================== */
+.form-control, .form-select {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-medium);
+  padding: 0.55rem 0.85rem;
+  color: var(--text-main);
+  transition: all 150ms ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+  outline: none;
+}
+
+.form-label {
+  font-size: 0.8125rem;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+}
+
+/* Buttons */
+.btn {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1rem;
+  transition: all 150ms ease;
+  letter-spacing: -0.01em;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background-color: var(--color-brand);
+  border-color: var(--color-brand);
+}
+.btn-primary:hover {
+  background-color: var(--color-brand-hover);
+  border-color: var(--color-brand-hover);
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+}
+
+.btn-outline-primary {
+  color: var(--color-brand);
+  border-color: var(--color-brand-border);
+}
+.btn-outline-primary:hover {
+  background-color: var(--color-brand);
+  border-color: var(--color-brand);
+  color: #FFFFFF;
+}
+
+.btn-outline-secondary {
+  color: var(--text-muted);
+  border-color: var(--border-medium);
+}
+.btn-outline-secondary:hover {
+  background-color: var(--bg-subtle);
+  color: var(--text-main);
+  border-color: var(--text-muted);
+}
+
+.btn-success {
+  background-color: #10B981;
+  border-color: #10B981;
+}
+.btn-success:hover {
+  background-color: #059669;
+  border-color: #059669;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);
+}
+
+.btn-warning {
+  background-color: #F59E0B;
+  border-color: #F59E0B;
+  color: #FFFFFF;
+}
+.btn-warning:hover {
+  background-color: #D97706;
+  border-color: #D97706;
+  color: #FFFFFF;
+}
+
+.btn-danger {
+  background-color: #EF4444;
+  border-color: #EF4444;
+}
+.btn-danger:hover {
+  background-color: #DC2626;
+  border-color: #DC2626;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
+}
+
+.btn:disabled, .btn.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================================================
+   14. ANIMATIONS & MICROINTERACTIONS
+   ========================================================================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.work-card, .stage-panel, .card {
+  animation: fadeIn 220ms ease-out;
+}
+
+/* ==========================================================================
+   15. MOBILE & RESPONSIVE LAYOUTS
+   ========================================================================== */
+@media (max-width: 1199.98px) {
+  .kanban-board {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scroll-snap-type: x mandatory;
+  }
+  .work-lane {
+    min-width: 300px;
+    flex: 0 0 300px;
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .app-navbar__links {
+    display: none;
+  }
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dashboard-actions {
+    flex-direction: column;
+  }
+  .dashboard-actions .btn,
+  .dashboard-actions form,
+  .dashboard-actions form .btn {
+    width: 100%;
+  }
+  .kanban-board {
+    flex-direction: column;
+  }
+  .work-lane {
+    min-width: 100%;
+    flex: 1 1 100%;
+  }
+  .stepper-track {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .stepper-track::before {
+    display: none;
+  }
+  .stepper-step {
+    flex-direction: row;
+  }
+}

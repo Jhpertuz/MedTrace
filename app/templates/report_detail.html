@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+{% block title %}Reporte #{{ report.id }} · {{ status_labels[report.estado] }} · BioMed{% endblock %}
+{% block content %}
+
+<!-- Navigation & Header -->
+<div class="page-top-nav mb-3">
+  <a class="back-link" href="{{ url_for('main.engineer') }}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+    Volver al tablero
+  </a>
+</div>
+
+<header class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 page-header-compact">
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <h1 class="mb-0 fs-2 fw-bold text-dark">Reporte #{{ report.id }}</h1>
+    <span class="state-badge state-{{ report.estado }} px-3 py-1 fs-xs">{{ status_labels[report.estado] }}</span>
+    <span class="priority-badge priority-{{ report.prioridad or 'pending' }} px-3 py-1 fs-xs">
+      <span class="priority-dot"></span>
+      Prioridad: {{ report.prioridad or 'Pendiente de validar respaldo' }}
+    </span>
+  </div>
+  <a class="btn btn-outline-primary d-inline-flex align-items-center gap-2" href="{{ url_for('main.equipment_history', equipment_id=report.equipo_id) }}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Historial de reparaciones del equipo
+  </a>
+</header>
+
+{% if error %}
+  <div class="alert alert-danger shadow-sm mb-4" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    {{ error }}
+  </div>
+{% endif %}
+
+<!-- Clinical Workflow Stepper -->
+<div class="workflow-stepper mb-4">
+  {% set steps = [
+    ('reportado', 'Reportado'),
+    ('en_revision', 'Revisión'),
+    ('en_mantenimiento', 'Mantenimiento'),
+    ('reparado', 'Verificación'),
+    ('cerrado', 'Liberado')
+  ] %}
+  {% set current_idx = 0 %}
+  {% if report.estado == 'en_revision' %}{% set current_idx = 1 %}
+  {% elif report.estado == 'en_mantenimiento' %}{% set current_idx = 2 %}
+  {% elif report.estado == 'reparado' %}{% set current_idx = 3 %}
+  {% elif report.estado == 'cerrado' %}{% set current_idx = 4 %}{% endif %}
+
+  <div class="stepper-track">
+    {% for st_key, st_name in steps %}
+      <div class="stepper-step {% if loop.index0 < current_idx %}step-completed{% elif loop.index0 == current_idx %}step-active{% else %}step-pending{% endif %}">
+        <div class="step-circle">
+          {% if loop.index0 < current_idx %}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          {% else %}
+            <span>{{ loop.index }}</span>
+          {% endif %}
+        </div>
+        <span class="step-label">{{ st_name }}</span>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Equipment Sheet Card -->
+<section class="card equipment-sheet-card p-4 mb-4">
+  <div class="d-flex justify-content-between flex-wrap gap-3 align-items-start border-bottom pb-3 mb-3">
+    <div>
+      <span class="eyebrow">Ficha técnica del equipo</span>
+      <h2 class="h4 mb-1 text-dark fw-bold">{{ report.equipo.nombre }}</h2>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="badge bg-light text-secondary border px-2 py-1">{{ report.equipo.tipo }}</span>
+        <span class="badge bg-light text-dark border font-monospace px-2 py-1">Serial {{ report.equipo.serial }}</span>
+        <span class="badge bg-light text-secondary border px-2 py-1">ArUco ID {{ report.equipo.aruco_id }}</span>
+      </div>
+    </div>
+    <div>
+      <span class="badge text-bg-light border px-3 py-2 fs-xs d-inline-flex align-items-center gap-2">
+        <span class="status-indicator {% if report.equipo.estado_operativo == 'operativo' %}bg-success{% elif report.equipo.estado_operativo == 'mantenimiento' %}bg-warning{% else %}bg-danger{% endif %}"></span>
+        Estado operativo: {{ report.equipo.estado_operativo|replace('_',' ') }}
+      </span>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-7">
+      <div class="fault-description-box p-3 rounded border">
+        <span class="text-muted fs-xs fw-semibold text-uppercase d-block mb-1">Descripción de la falla</span>
+        <p class="mb-0 text-dark fw-medium">{{ report.descripcion }}</p>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="fault-metadata-grid p-3 rounded border bg-light-subtle">
+        <div class="meta-row">
+          <span class="text-muted fs-xs">Reportó:</span>
+          <span class="fw-semibold text-dark fs-xs">{{ report.reportado_por }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="text-muted fs-xs">Fecha:</span>
+          <span class="fw-semibold text-dark fs-xs">{{ report.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="text-muted fs-xs">Impacto:</span>
+          <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fs-xs">{{ report.impacto_operativo|replace('_',' ') }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="text-muted fs-xs">Prioridad:</span>
+          <span class="fw-bold text-dark fs-xs">{{ report.prioridad or 'Pendiente de validar respaldo' }} ({{ report.puntaje_prioridad if report.puntaje_prioridad is not none else 'sin puntaje' }})</span>
+        </div>
+        <div class="meta-row">
+          <span class="text-muted fs-xs">Respaldos al reportar:</span>
+          <span class="fw-semibold text-dark fs-xs">{{ report.cantidad_respaldos_al_calcular if report.cantidad_respaldos_al_calcular is not none else 'sin grupo compatible confirmado' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stage-Specific Action Section -->
+{% if report.estado == 'reportado' %}
+  <section class="stage-panel stage-panel-primary">
+    <div class="stage-panel-header mb-3">
+      <span class="eyebrow">Paso 1 · Recepción</span>
+      <h2 class="h4 text-dark fw-bold mb-1">Iniciar revisión</h2>
+      <p class="text-muted mb-0">Esta acción recibe el caso. El diagnóstico y la estimación se registran después.</p>
+    </div>
+    <form method="post" action="{{ url_for('main.report_transition', report_id=report.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button name="nuevo_estado" value="en_revision" class="btn btn-primary d-inline-flex align-items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        Iniciar revisión
+      </button>
+    </form>
+  </section>
+
+{% elif report.estado == 'en_revision' %}
+  <section class="stage-panel stage-panel-info">
+    <div class="stage-panel-header mb-3">
+      <span class="eyebrow">Paso 2 · Revisión inicial</span>
+      <h2 class="h4 text-dark fw-bold mb-1">Diagnóstico y estimación</h2>
+      <p class="text-muted mb-0">Complete el diagnóstico técnico y determine el tiempo estimado fuera de servicio.</p>
+    </div>
+    <form method="post" action="{{ url_for('main.save_review', report_id=report.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label class="form-label fw-semibold" for="diagnostico">Diagnóstico inicial</label>
+        <textarea id="diagnostico" name="diagnostico" class="form-control" rows="4" placeholder="Describa el origen de la falla y componentes afectados..." required>{{ form_values.get('diagnostico', report.diagnostico or '') }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold" for="dias">Días estimados de indisponibilidad</label>
+        <input id="dias" name="dias_estimados" type="number" min="0" class="form-control" style="max-width: 200px;" value="{{ form_values.get('dias_estimados', report.dias_estimados if report.dias_estimados is not none else '') }}" required>
+      </div>
+      <button class="btn btn-outline-primary d-inline-flex align-items-center gap-2">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar diagnóstico y estimación
+      </button>
+    </form>
+    
+    <div class="transition-divider my-4 border-top pt-4">
+      <form method="post" action="{{ url_for('main.report_transition', report_id=report.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button name="nuevo_estado" value="en_mantenimiento" class="btn btn-warning d-inline-flex align-items-center gap-2" {% if not report.diagnostico or report.dias_estimados is none %}disabled title="Guarde el diagnóstico y los días estimados primero"{% endif %}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          Enviar a mantenimiento
+        </button>
+        {% if not report.diagnostico or report.dias_estimados is none %}
+          <small class="text-muted ms-2 d-inline-block mt-2 mt-sm-0">Primero guarde diagnóstico y días estimados.</small>
+        {% endif %}
+      </form>
+    </div>
+  </section>
+
+{% elif report.estado == 'en_mantenimiento' %}
+  <section class="stage-panel stage-panel-warning">
+    <div class="stage-panel-header mb-3">
+      <span class="eyebrow">Paso 3 · Trabajo en curso</span>
+      <h2 class="h4 text-dark fw-bold mb-1">Mantenimiento del equipo</h2>
+    </div>
+    
+    <div class="reference-data mb-4">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <p class="mb-1"><strong>Diagnóstico inicial:</strong> {{ report.diagnostico }}</p>
+          <p class="mb-0"><strong>Inicio:</strong> {{ report.mantenimiento_started_at.strftime('%d/%m/%Y %H:%M') if report.mantenimiento_started_at else 'No registrado' }}</p>
+        </div>
+        <div class="col-md-6">
+          <p class="mb-1"><strong>Estimación inicial:</strong> {{ report.dias_estimados_iniciales if report.dias_estimados_iniciales is not none else report.dias_estimados }} días</p>
+          <p class="mb-0"><strong>Estimación vigente:</strong> <span class="badge bg-primary text-white">{{ report.dias_estimados }} días</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <form method="post" action="{{ url_for('main.extend_days', report_id=report.id) }}" class="subform h-100 p-4">
+          <h3 class="h6 fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Ampliar días estimados
+          </h3>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-2">
+            <label class="form-label fs-xs fw-semibold" for="days-more">Días adicionales</label>
+            <input id="days-more" name="dias_adicionales" type="number" min="1" class="form-control form-control-sm" value="{{ form_values.get('dias_adicionales','') }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fs-xs fw-semibold" for="extend-note">Motivo</label>
+            <textarea id="extend-note" name="observacion" class="form-control form-control-sm" rows="3" placeholder="Ej. Espera de repuesto importado..." required>{{ form_values.get('observacion','') if form_values.get('dias_adicionales') else '' }}</textarea>
+          </div>
+          <button class="btn btn-outline-warning btn-sm w-100">Ampliar días estimados</button>
+        </form>
+      </div>
+
+      <div class="col-lg-7">
+        <form method="post" action="{{ url_for('main.report_transition', report_id=report.id) }}" class="subform h-100 p-4">
+          <h3 class="h6 fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Finalizar reparación
+          </h3>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="nuevo_estado" value="reparado">
+          <div class="mb-2">
+            <label class="form-label fs-xs fw-semibold" for="final-report">Reporte final de mantenimiento</label>
+            <textarea id="final-report" name="reporte_final" class="form-control" rows="5" placeholder="Detalle actividades, partes reemplazadas y pruebas realizadas..." required>{{ form_values.get('reporte_final','') }}</textarea>
+            <small class="text-muted d-block mt-1 fs-xs">Describa actividades, intervenciones y resultados. El equipo seguirá en mantenimiento hasta su liberación.</small>
+          </div>
+          <button class="btn btn-success d-inline-flex align-items-center gap-2 mt-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Registrar reporte final de mantenimiento
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+{% elif report.estado == 'reparado' %}
+  <section class="stage-panel stage-panel-success">
+    <div class="stage-panel-header mb-3">
+      <span class="eyebrow">Paso 4 · Pendiente de liberación</span>
+      <h2 class="h4 text-dark fw-bold mb-1">Revisión final</h2>
+      <p class="text-muted mb-0">Verifique las intervenciones y confirme la liberación al servicio o retorne a mantenimiento.</p>
+    </div>
+
+    <div class="reference-data mb-4">
+      <p class="mb-1"><strong>Diagnóstico inicial:</strong> {{ report.diagnostico }}</p>
+      <p class="mb-2"><strong>Estimación vigente:</strong> {{ report.dias_estimados }} días</p>
+      <div class="p-3 bg-white border rounded">
+        <strong class="text-dark d-block mb-1 fs-xs text-uppercase">Reporte final de mantenimiento:</strong>
+        <p class="mb-0 text-muted fst-italic">{{ report.reporte_final_mantenimiento }}</p>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <form method="post" action="{{ url_for('main.report_transition', report_id=report.id) }}" class="subform h-100 p-4 border-success-subtle">
+          <h3 class="h6 fw-bold text-success mb-2 d-flex align-items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Aprobar y Liberar Equipo
+          </h3>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="nuevo_estado" value="cerrado">
+          <div class="mb-2">
+            <label class="form-label fs-xs fw-semibold" for="release-report">Reporte de liberación</label>
+            <textarea id="release-report" name="reporte_liberacion" class="form-control" rows="4" placeholder="Documente la conclusión de la revisión final y la decisión de devolver el equipo al servicio..." required>{{ form_values.get('reporte_liberacion','') }}</textarea>
+            <small class="text-muted d-block mt-1 fs-xs">Documente la conclusión de la revisión final y la decisión de devolver el equipo al servicio.</small>
+          </div>
+          <button class="btn btn-success d-inline-flex align-items-center gap-2 mt-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Registrar reporte de liberación
+          </button>
+        </form>
+      </div>
+
+      <div class="col-lg-5">
+        <form method="post" action="{{ url_for('main.report_transition', report_id=report.id) }}" class="subform h-100 p-4 border-warning-subtle">
+          <h3 class="h6 fw-bold text-warning-emphasis mb-2 d-flex align-items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Devolver a Mantenimiento
+          </h3>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="nuevo_estado" value="en_mantenimiento">
+          <div class="mb-2">
+            <label class="form-label fs-xs fw-semibold" for="return-note">Motivo para volver a mantenimiento</label>
+            <textarea id="return-note" name="observacion" class="form-control" rows="4" placeholder="Describa por qué el equipo no superó la verificación..." required>{{ form_values.get('observacion','') if form_values.get('nuevo_estado') == 'en_mantenimiento' else '' }}</textarea>
+          </div>
+          <button class="btn btn-outline-warning w-100 mt-2">Volver a mantenimiento</button>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<!-- History Timeline Section -->
+<section class="mt-5">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="h4 text-dark fw-bold mb-0">Historial de reparaciones</h2>
+    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 fs-xs">{{ report.historial|length }} eventos</span>
+  </div>
+
+  <ol class="timeline list-unstyled">
+    {% for item in report.historial %}
+      <li class="timeline-item">
+        <div class="timeline-head">
+          <span class="event-title fw-bold text-dark">{{ item.tipo_evento|replace('_',' ')|capitalize }}</span>
+          <time class="event-time font-monospace text-muted fs-xs">{{ item.created_at.strftime('%d/%m/%Y %H:%M') }}</time>
+        </div>
+        <p class="timeline-meta mb-1 text-muted fs-xs">
+          <span class="badge bg-light text-secondary border me-1">{{ item.estado_anterior|replace('_',' ') }}</span>
+          →
+          <span class="badge bg-light text-dark border ms-1">{{ item.estado_nuevo|replace('_',' ') }}</span>
+          {% if item.usuario %}
+            · <span class="text-dark fw-medium">{{ item.usuario.nombre }}</span>
+          {% else %}
+            · <span class="text-dark fw-medium">{{ report.reportado_por }}</span>
+          {% endif %}
+        </p>
+        {% if item.tipo_evento == 'plazo_ampliado' and item.detalles %}
+          <p class="mb-1 text-warning-emphasis fw-medium fs-xs">
+            {{ item.detalles.dias_anterior }} → {{ item.detalles.dias_nuevo }} días (+{{ item.detalles.dias_adicionales }})
+          </p>
+        {% endif %}
+        {% if item.observacion %}
+          <p class="event-note">{{ item.observacion }}</p>
+        {% endif %}
+      </li>
+    {% else %}
+      <li class="text-muted p-3 bg-light rounded text-center">Sin eventos registrados.</li>
+    {% endfor %}
+  </ol>
+</section>
+
+{% endblock %}
+

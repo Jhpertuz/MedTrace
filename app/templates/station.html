@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Estación de registro de fallas · BioMed{% endblock %}
+{% block content %}
+
+<div class="station-header mb-4">
+  <span class="eyebrow">Terminal de Punto de Atención</span>
+  <h1 class="h2 fw-bold text-dark mb-1">Gestión de fallas biomédicas</h1>
+  <p class="text-muted mb-0">Identifique el equipo mediante el marcador ArUco y registre la incidencia técnica.</p>
+</div>
+
+<div class="row g-4 align-items-start">
+  <!-- Left Column: Camera Viewfinder -->
+  <section class="col-lg-6">
+    <div class="card p-3 camera-station-card">
+      <div class="camera-card-header d-flex justify-content-between align-items-center mb-2">
+        <span class="fs-xs fw-bold text-uppercase text-muted d-flex align-items-center gap-1">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Visor Óptico ArUco
+        </span>
+        <span class="badge bg-dark text-white font-monospace fs-xs">DICT_6X6_250</span>
+      </div>
+
+      <!-- Viewfinder with Target Crosshairs -->
+      <div class="camera-viewport-wrap position-relative rounded overflow-hidden">
+        <video id="camera" class="w-100 d-block rounded" autoplay playsinline></video>
+        <canvas id="canvas" hidden></canvas>
+        <div class="camera-hud-overlay">
+          <div class="hud-corner hud-top-left"></div>
+          <div class="hud-corner hud-top-right"></div>
+          <div class="hud-corner hud-bottom-left"></div>
+          <div class="hud-corner hud-bottom-right"></div>
+          <div class="hud-center-cross"></div>
+        </div>
+      </div>
+
+      <div class="camera-controls mt-3 d-flex gap-2 flex-wrap">
+        <button id="start-camera" class="btn btn-outline-primary flex-grow-1 d-inline-flex align-items-center justify-content-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Iniciar cámara
+        </button>
+        <button id="identify" class="btn btn-primary flex-grow-1 d-inline-flex align-items-center justify-content-center gap-2" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg>
+          Capturar e identificar
+        </button>
+      </div>
+
+      <p id="detection" class="mt-2 mb-0 fs-xs text-muted font-monospace" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- Right Column: Identified Equipment & Fault Form -->
+  <section class="col-lg-6">
+    <div class="card p-4 report-station-card">
+      <span class="fs-xs fw-bold text-uppercase text-muted mb-2 d-block">Resultado de Detección</span>
+      
+      <div id="equipment" class="card mb-3 p-3 identified-equipment-box border bg-light-subtle">
+        <div class="d-flex align-items-center gap-2 text-muted">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Aún no hay equipo identificado.</span>
+        </div>
+      </div>
+
+      <form id="report-form" class="mt-2">
+        <input id="equipo_id" type="hidden" />
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="reportado_por">Reportado por</label>
+          <input id="reportado_por" class="form-control" placeholder="Nombre completo del reportante" required disabled />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="impacto_operativo">Impacto operativo</label>
+          <select id="impacto_operativo" class="form-select" required disabled>
+            <option value="">Seleccione impacto</option>
+            <option value="detiene_servicio">Detiene servicio</option>
+            <option value="degradado">Servicio degradado</option>
+            <option value="sin_impacto">Sin impacto</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="descripcion">Descripción de la falla</label>
+          <textarea id="descripcion" class="form-control" rows="3" placeholder="Detalle el síntoma, alarma o conducta anormal observada..." required disabled></textarea>
+        </div>
+
+        <button id="submit-report" class="btn btn-danger w-100 py-2 fw-bold d-inline-flex align-items-center justify-content-center gap-2" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Registrar reporte
+        </button>
+      </form>
+
+      <div id="confirmation" class="mt-3"></div>
+    </div>
+  </section>
+</div>
+
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+{% endblock %}
+

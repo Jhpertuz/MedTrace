@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Ingreso del Ingeniero Clínico · BioMed{% endblock %}
+{% block content %}
+
+<div class="login-page-wrapper d-flex align-items-center justify-content-center py-5">
+  <div class="card p-4 p-md-5 login-card shadow-md border" style="max-width: 440px; width: 100%;">
+    <div class="text-center mb-4">
+      <div class="login-brand-icon mx-auto mb-3">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+      </div>
+      <span class="eyebrow d-block mb-1">Portal Técnico Especializado</span>
+      <h1 class="h3 fw-bold text-dark mb-1">Ingreso del ingeniero clínico</h1>
+      <p class="text-muted fs-sm mb-0">Acceda al tablero de atención y gestión de fallas hospitalarias</p>
+    </div>
+
+    {% if error %}
+      <div class="alert alert-danger shadow-xs mb-3 d-flex align-items-center gap-2 fs-xs py-2">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>{{ error }}</span>
+      </div>
+    {% endif %}
+
+    <form method="post" class="login-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold" for="login-email">Correo institucional</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          </span>
+          <input id="login-email" name="email" type="email" class="form-control border-start-0 ps-0" placeholder="ingeniero@hospital.local" required />
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-semibold" for="login-password">Contraseña de acceso</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          <input id="login-password" name="password" type="password" class="form-control border-start-0 ps-0" placeholder="••••••••" required />
+        </div>
+      </div>
+
+      <button class="btn btn-primary w-100 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-sm">
+        <span>Iniciar sesión</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </form>
+
+    <div class="mt-4 pt-3 border-top text-center">
+      <small class="text-muted fs-xs">
+        ¿Desea reportar una falla sin cuenta? <a href="{{ url_for('main.station') }}" class="fw-semibold">Ir a Estación de Falla</a>
+      </small>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+

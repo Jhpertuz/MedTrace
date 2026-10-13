@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: maintenance
+      POSTGRES_USER: maintenance
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-maintenance_demo}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maintenance -d maintenance"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: [internal]
+  app:
+    image: ${DOCKER_IMAGE:-jorgepertuz23/biomed-mantenimiento}:${IMAGE_TAG:-1.0.0}
+    ports: ["8000:8000"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://maintenance:${POSTGRES_PASSWORD:-maintenance_demo}@db:5432/maintenance
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+      INITIAL_ENGINEER_EMAIL: ${INITIAL_ENGINEER_EMAIL:-ingeniero@demo.local}
+      INITIAL_ENGINEER_PASSWORD: ${INITIAL_ENGINEER_PASSWORD:-cambiar-para-demo}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal, web]
+volumes:
+  postgres_data:
+networks:
+  internal:
+    internal: true
+  web:
