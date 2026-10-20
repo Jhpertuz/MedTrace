@@ -3,10 +3,13 @@ from sqlalchemy import JSON
 from .extensions import db
 
 
+#! Devuelve la fecha y hora actual en UTC para registrar eventos de forma
+#! consistente aunque la aplicación se use desde distintas zonas horarias.
 def now():
     return datetime.now(timezone.utc)
 
 
+#! Representa un equipo médico y sus datos usados para calcular prioridades.
 class Equipo(db.Model):
     __tablename__ = "equipos"
     id = db.Column(db.Integer, primary_key=True)
@@ -22,6 +25,7 @@ class Equipo(db.Model):
     __table_args__ = (db.CheckConstraint("aruco_id >= 0 AND aruco_id <= 249", name="aruco_id_range"),)
 
 
+#! Representa a las personas que pueden acceder al panel de ingeniería.
 class Usuario(db.Model):
     __tablename__ = "usuarios"
     id = db.Column(db.Integer, primary_key=True)
@@ -31,6 +35,7 @@ class Usuario(db.Model):
     rol = db.Column(db.String(30), nullable=False)
 
 
+#! Guarda una falla, su prioridad, avance de mantenimiento y verificaciones.
 class ReporteFalla(db.Model):
     __tablename__ = "reportes_falla"
     id = db.Column(db.Integer, primary_key=True)
@@ -58,6 +63,7 @@ class ReporteFalla(db.Model):
     historial = db.relationship("HistorialReporte", back_populates="reporte", order_by=lambda: [HistorialReporte.created_at, HistorialReporte.id], lazy=True)
 
 
+#! Registra cada cambio o evento para conservar la trazabilidad del reporte.
 class HistorialReporte(db.Model):
     __tablename__ = "historial_reportes"
     id = db.Column(db.Integer, primary_key=True)

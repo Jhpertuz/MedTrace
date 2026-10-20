@@ -19,6 +19,7 @@ STATUS_LABELS = {
 }
 
 
+#! Protege las vistas del panel y permite continuar solo a ingenieros autenticados.
 def engineer_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
@@ -30,10 +31,12 @@ def engineer_required(view):
     return wrapped
 
 
+#! Recupera de la sesión el usuario que inició sesión.
 def current_user():
     return db.session.get(Usuario, session["user_id"])
 
 
+#! Comprueba que la aplicación y la conexión con la base de datos respondan.
 @bp.get("/health")
 def health():
     try:
@@ -42,11 +45,13 @@ def health():
         return jsonify(status="error"), 503
 
 
+#! Muestra la estación pública donde se identifica el equipo.
 @bp.get("/station")
 def station():
     return render_template("station.html")
 
 
+#! Recibe una foto, detecta un ArUco y devuelve el equipo asociado.
 @bp.post("/api/identify")
 def identify():
     image = request.files.get("image")
@@ -60,6 +65,7 @@ def identify():
     return jsonify(status="equipment_identified", marker_id=equipment.aruco_id, equipment={"id": equipment.id, "nombre": equipment.nombre, "tipo": equipment.tipo, "serial": equipment.serial, "estado_operativo": equipment.estado_operativo})
 
 
+#! Registra el reporte enviado desde la estación y devuelve su prioridad.
 @bp.post("/api/reports")
 def reports():
     data = request.get_json(silent=True) or request.form
@@ -73,6 +79,7 @@ def reports():
     return jsonify(id=report.id, prioridad=report.prioridad, puntaje=report.puntaje_prioridad, validacion_respaldo_pendiente=report.validacion_respaldo_pendiente), 201
 
 
+#! Autentica al ingeniero y crea la sesión que habilita el panel.
 @bp.route("/engineer/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -83,12 +90,14 @@ def login():
     return render_template("engineer_login.html")
 
 
+#! Cierra la sesión actual y devuelve al formulario de acceso.
 @bp.post("/engineer/logout")
 @engineer_required
 def logout():
     session.clear(); return redirect(url_for("main.login"))
 
 
+#! Consulta reportes abiertos, los ordena por prioridad y arma las columnas.
 @bp.get("/engineer")
 @engineer_required
 def engineer():
@@ -100,6 +109,7 @@ def engineer():
     return render_template("engineer.html", summary=summary, lanes=lanes, counts=counts, status_labels=STATUS_LABELS)
 
 
+#! Registra equipos y, tras crearlos, prepara su marcador ArUco para imprimir.
 @bp.route("/registro", methods=["GET", "POST"])
 @engineer_required
 def register_equipment():
@@ -129,6 +139,7 @@ def register_equipment():
     return render_template("registro.html", equipment=equipment, aruco_image=aruco_image, form_values=form_values)
 
 
+#! Muestra el detalle y las acciones disponibles para un reporte.
 @bp.get("/engineer/reports/<int:report_id>")
 @engineer_required
 def report_detail(report_id):
@@ -137,6 +148,7 @@ def report_detail(report_id):
     return render_template("report_detail.html", report=report, status_labels=STATUS_LABELS, form_values={})
 
 
+#! Muestra el historial de fallas y eventos de un equipo.
 @bp.get("/engineer/equipment/<int:equipment_id>/history")
 @engineer_required
 def equipment_history(equipment_id):
@@ -145,6 +157,7 @@ def equipment_history(equipment_id):
     return render_template("equipment_history.html", equipment=equipment)
 
 
+#! Busca un equipo por serial y redirige a su historial.
 @bp.get("/engineer/history")
 @engineer_required
 def find_equipment_history():
@@ -159,6 +172,7 @@ def find_equipment_history():
     return redirect(url_for("main.equipment_history", equipment_id=equipment.id))
 
 
+#! Completa el grupo de respaldo pendiente y recalcula la prioridad.
 @bp.post("/engineer/reports/<int:report_id>/confirm-backup-group")
 @engineer_required
 def confirm_backup_group(report_id):
@@ -169,6 +183,7 @@ def confirm_backup_group(report_id):
     return redirect(url_for("main.report_detail", report_id=report.id))
 
 
+#! Avanza o devuelve un reporte según las transiciones permitidas.
 @bp.post("/engineer/reports/<int:report_id>/transition")
 @engineer_required
 def report_transition(report_id):
@@ -186,6 +201,7 @@ def report_transition(report_id):
     return redirect(url_for("main.report_detail", report_id=report.id))
 
 
+#! Guarda el diagnóstico inicial y el tiempo estimado de reparación.
 @bp.post("/engineer/reports/<int:report_id>/review")
 @engineer_required
 def save_review(report_id):
@@ -205,6 +221,7 @@ def save_review(report_id):
     return redirect(url_for("main.report_detail", report_id=report.id))
 
 
+#! Registra una ampliación de días solicitada durante el mantenimiento.
 @bp.post("/engineer/reports/<int:report_id>/extend-days")
 @engineer_required
 def extend_days(report_id):

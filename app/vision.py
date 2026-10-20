@@ -7,9 +7,11 @@ _detector = cv2.aruco.ArucoDetector(_dictionary, cv2.aruco.DetectorParameters())
 
 
 class ImageError(ValueError):
+    #! Error específico para distinguir imágenes inválidas de fallos generales.
     pass
 
 
+#! Valida una imagen, la decodifica y busca marcadores ArUco en escala de gris.
 def detectar_marcadores(image_bytes: bytes):
     if not image_bytes or not image_bytes.startswith(ALLOWED_MAGIC):
         raise ImageError("La imagen debe ser JPEG o PNG válido.")
@@ -23,6 +25,7 @@ def detectar_marcadores(image_bytes: bytes):
     return [{"id": int(marker_id), "corners": points.reshape(4, 2).tolist()} for marker_id, points in zip(ids.flatten(), corners)]
 
 
+#! Genera un PNG imprimible con el marcador ArUco solicitado.
 def generar_marcador_png(marker_id: int) -> bytes:
     if not isinstance(marker_id, int) or not 0 <= marker_id <= 249:
         raise ValueError("El ID ArUco debe estar entre 0 y 249.")

@@ -11,6 +11,7 @@ OPEN_STATES = ("reportado", "en_revision", "en_mantenimiento", "reparado")
 PRIORITY_ORDER = {"critica": 4, "alta": 3, "media": 2, "baja": 1}
 
 
+#! Convierte los factores de una falla en un puntaje y una prioridad operativa.
 def calcular_prioridad(impacto_operativo, criticidad, cantidad_respaldos, nivel_uso, reincidencias):
     if impacto_operativo not in IMPACTS or criticidad not in CRITICALITY or nivel_uso not in USAGE:
         raise ValueError("Factor de prioridad desconocido.")
@@ -28,6 +29,7 @@ def calcular_prioridad(impacto_operativo, criticidad, cantidad_respaldos, nivel_
     return score, priority
 
 
+#! Cuenta equipos operativos compatibles que no tienen fallas abiertas.
 def contar_respaldos(equipo):
     if not equipo.grupo_respaldo:
         return None
@@ -38,6 +40,7 @@ def contar_respaldos(equipo):
         Equipo.estado_operativo == "operativo", ~open_for_candidate))
 
 
+#! Cuenta las fallas previas del equipo durante los últimos 90 días.
 def reincidencias(equipo_id, at=None):
     at = at or datetime.now(timezone.utc)
     return db.session.scalar(select(db.func.count(ReporteFalla.id)).where(
@@ -45,12 +48,14 @@ def reincidencias(equipo_id, at=None):
         ReporteFalla.created_at < at)) or 0
 
 
+#! Añade un evento al historial sin cambiar el estado del reporte.
 def _event(report, user, event_type, observation=None, details=None):
     state = report.estado
     db.session.add(HistorialReporte(reporte=report, usuario=user, estado_anterior=state,
         estado_nuevo=state, tipo_evento=event_type, observacion=observation, detalles=details))
 
 
+#! Valida y registra una falla; calcula prioridad si el grupo de respaldo existe.
 def crear_reporte(equipo, reportado_por, descripcion, impacto_operativo):
     if not reportado_por.strip() or not descripcion.strip() or impacto_operativo not in IMPACTS:
         raise ValueError("Reportante, descripción e impacto válido son obligatorios.")
@@ -75,6 +80,7 @@ def crear_reporte(equipo, reportado_por, descripcion, impacto_operativo):
     return report
 
 
+#! Confirma el grupo de respaldo y recalcula la prioridad pendiente.
 def confirmar_grupo(reporte, grupo):
     if not grupo or not grupo.strip(): raise ValueError("El grupo compatible es obligatorio.")
     reporte.equipo.grupo_respaldo = grupo.strip()
@@ -85,6 +91,7 @@ def confirmar_grupo(reporte, grupo):
     reporte.validacion_respaldo_pendiente = False; db.session.commit()
 
 
+#! Guarda el diagnóstico y los días previstos durante la etapa de revisión.
 def guardar_revision(reporte, user, diagnostico, dias_estimados):
     if reporte.estado != "en_revision":
         raise ValueError("El diagnóstico solo se puede actualizar durante la revisión.")
@@ -103,6 +110,7 @@ def guardar_revision(reporte, user, diagnostico, dias_estimados):
     db.session.commit()
 
 
+#! Amplía el plazo del mantenimiento y deja constancia del motivo.
 def ampliar_plazo(reporte, user, dias_adicionales, observacion):
     if reporte.estado != "en_mantenimiento":
         raise ValueError("El plazo solo se amplía durante el mantenimiento.")
@@ -117,6 +125,7 @@ def ampliar_plazo(reporte, user, dias_adicionales, observacion):
     db.session.commit()
 
 
+#! Valida y crea un equipo con el siguiente identificador ArUco disponible.
 def registrar_equipo(nombre, tipo, serial, grupo_respaldo, criticidad, nivel_uso, estado_operativo="operativo"):
     if not nombre or not nombre.strip() or not tipo or not tipo.strip() or not serial or not serial.strip():
         raise ValueError("Nombre, tipo y serial son obligatorios.")
@@ -145,6 +154,7 @@ def registrar_equipo(nombre, tipo, serial, grupo_respaldo, criticidad, nivel_uso
     return equipment
 
 
+#! Ejecuta una transición permitida, actualiza el equipo y registra el evento.
 def transition(reporte, user, new_state, diagnostico=None, dias_estimados=None, respaldo_confirmado=False, verificacion_funcional=False, observacion=None, reporte_final=None, reporte_liberacion=None):
     allowed = {"reportado": {"en_revision"}, "en_revision": {"en_mantenimiento"}, "en_mantenimiento": {"reparado"}, "reparado": {"cerrado", "en_mantenimiento"}}
     if new_state not in allowed.get(reporte.estado, set()):
@@ -190,6 +200,7 @@ def transition(reporte, user, new_state, diagnostico=None, dias_estimados=None, 
     db.session.commit()
 
 
+#! Inserta el usuario de demostración y un conjunto de equipos de ejemplo.
 def seed_app(app):
     if not Usuario.query.filter_by(email=app.config["INITIAL_ENGINEER_EMAIL"]).first():
         db.session.add(Usuario(nombre="Ingeniero Demo", email=app.config["INITIAL_ENGINEER_EMAIL"], password_hash=generate_password_hash(app.config["INITIAL_ENGINEER_PASSWORD"]), rol="ingeniero"))
